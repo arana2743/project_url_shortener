@@ -40,6 +40,13 @@ class Link(db.Model):
     return short_url
 
 
+# db setup and creation before first request
+# in order for db file to be available before any commit
+@app.before_first_request
+def create_tables():
+  db.create_all()
+
+
 # API routes
 # main root url - just used here to check if API is working
 @app.route('/', methods=['GET'])
