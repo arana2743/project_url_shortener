@@ -50,23 +50,49 @@ def hello_world():
   }
   return jsonify(data)
 
+
 # /shorten_url = used to pass long_url to shorten it as json 
 # format : { 'original_url': 'https://www.example.com/ }
 @app.route('/shorten_url', methods=['POST'])
 def shorten_url():
-  pass
+  request_data = request.get_json()
+  original_url = request_data['original_url']
+  link = Link(original_url=original_url)
+  db.session.add(link)
+  db.session.commit()
+  
+  data = {
+    'original_url': link.original_url,
+    'short_url': link.short_url
+  }
+  return jsonify(data)
 
 
 # /<short_url> = used to redirect from short_url to original_url 
 @app.route('/<short_url>')
 def redirect_to_url(short_url):
-  pass
+  link = Link.query.filter_by(short_url=short_url).first_or_404()
+  
+  # track short url visits
+  link.visits = link.visits + 1
+  db.session.commit()
+
+  return redirect(link.original_url)
 
 
 @app.route('/stats', methods=['GET'])
 def get_all_stats():
-  pass
-
+  links = Link.query.all()
+  
+  all_data = []
+  for link in links:
+    data = {}
+    data['original_url'] = link.original_url
+    data['short_url'] = link.short_url
+    data['visits_count'] = link.visits
+    data['date_created'] = link.date_created
+    all_data.append(data)
+  return jsonify(all_data)
 
 
 # main call for the app
