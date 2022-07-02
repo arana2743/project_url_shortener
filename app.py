@@ -62,18 +62,21 @@ def hello_world():
 # format : { 'original_url': 'https://www.example.com/ }
 @app.route('/shorten_url', methods=['POST'])
 def shorten_url():
-  request_data = request.get_json()
-  original_url = request_data['original_url']
-  link = Link(original_url=original_url)
-  db.session.add(link)
-  db.session.commit()
-  
-  data = {
-    'original_url': link.original_url,
-    'short_url': link.short_url
-  }
-  return jsonify(data)
-
+  content_type = request.headers.get('Content-Type')
+  if (content_type == 'application/json'):
+    request_data = request.get_json()
+    original_url = request_data['original_url']
+    link = Link(original_url=original_url)
+    db.session.add(link)
+    db.session.commit()
+    
+    data = {
+      'original_url': link.original_url,
+      'short_url': link.short_url
+    }
+    return jsonify(data)
+  else:
+    return 'content type not supported!'
 
 # /<short_url> = used to redirect from short_url to original_url 
 @app.route('/<short_url>')
